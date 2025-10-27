@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +12,7 @@ import Icon from '@/components/ui/icon';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const Settings = () => {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState({
     taskAssigned: true,
     taskCompleted: true,
@@ -31,7 +33,7 @@ const Settings = () => {
         </div>
         
         <nav className="space-y-2">
-          <Button variant="ghost" className="w-full justify-start">
+          <Button variant="ghost" className="w-full justify-start" onClick={() => navigate('/')}>
             <Icon name="LayoutDashboard" className="mr-2" size={20} />
             Дашборд
           </Button>
@@ -39,19 +41,19 @@ const Settings = () => {
             <Icon name="KanbanSquare" className="mr-2" size={20} />
             Канбан
           </Button>
-          <Button variant="ghost" className="w-full justify-start">
+          <Button variant="ghost" className="w-full justify-start" onClick={() => navigate('/tasks')}>
             <Icon name="ListTodo" className="mr-2" size={20} />
             Задачи
           </Button>
-          <Button variant="ghost" className="w-full justify-start">
+          <Button variant="ghost" className="w-full justify-start" onClick={() => navigate('/sprints')}>
             <Icon name="Timer" className="mr-2" size={20} />
             Спринты
           </Button>
-          <Button variant="ghost" className="w-full justify-start">
+          <Button variant="ghost" className="w-full justify-start" onClick={() => navigate('/team')}>
             <Icon name="Users" className="mr-2" size={20} />
             Команда
           </Button>
-          <Button variant="default" className="w-full justify-start">
+          <Button variant="default" className="w-full justify-start" onClick={() => navigate('/settings')}>
             <Icon name="Settings" className="mr-2" size={20} />
             Настройки
           </Button>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +26,7 @@ interface TeamMember {
 }
 
 const Team = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   
   const [members] = useState<TeamMember[]>([
@@ -163,7 +165,7 @@ const Team = () => {
         </div>
         
         <nav className="space-y-2">
-          <Button variant="ghost" className="w-full justify-start">
+          <Button variant="ghost" className="w-full justify-start" onClick={() => navigate('/')}>
             <Icon name="LayoutDashboard" className="mr-2" size={20} />
             Дашборд
           </Button>
@@ -171,19 +173,19 @@ const Team = () => {
             <Icon name="KanbanSquare" className="mr-2" size={20} />
             Канбан
           </Button>
-          <Button variant="ghost" className="w-full justify-start">
+          <Button variant="ghost" className="w-full justify-start" onClick={() => navigate('/tasks')}>
             <Icon name="ListTodo" className="mr-2" size={20} />
             Задачи
           </Button>
-          <Button variant="ghost" className="w-full justify-start">
+          <Button variant="ghost" className="w-full justify-start" onClick={() => navigate('/sprints')}>
             <Icon name="Timer" className="mr-2" size={20} />
             Спринты
           </Button>
-          <Button variant="default" className="w-full justify-start">
+          <Button variant="default" className="w-full justify-start" onClick={() => navigate('/team')}>
             <Icon name="Users" className="mr-2" size={20} />
             Команда
           </Button>
-          <Button variant="ghost" className="w-full justify-start">
+          <Button variant="ghost" className="w-full justify-start" onClick={() => navigate('/settings')}>
             <Icon name="Settings" className="mr-2" size={20} />
             Настройки
           </Button>
