@@ -14,6 +14,13 @@ import { Progress } from '@/components/ui/progress';
 type Priority = 'low' | 'medium' | 'high';
 type Status = 'todo' | 'in-progress' | 'review' | 'done';
 
+interface Project {
+  id: string;
+  name: string;
+  color: string;
+  icon: string;
+}
+
 interface Task {
   id: string;
   title: string;
@@ -23,10 +30,19 @@ interface Task {
   assignees: string[];
   dueDate: string;
   comments: number;
+  projectId: string;
 }
 
 const Index = () => {
   const [activeView, setActiveView] = useState<'dashboard' | 'kanban'>('dashboard');
+  const [selectedProject, setSelectedProject] = useState<string>('all');
+  
+  const [projects] = useState<Project[]>([
+    { id: '1', name: 'Веб-приложение', color: 'bg-blue-500', icon: 'Globe' },
+    { id: '2', name: 'Мобильное приложение', color: 'bg-purple-500', icon: 'Smartphone' },
+    { id: '3', name: 'Маркетинг', color: 'bg-green-500', icon: 'TrendingUp' }
+  ]);
+  
   const [tasks, setTasks] = useState<Task[]>([
     {
       id: '1',
@@ -36,7 +52,8 @@ const Index = () => {
       priority: 'high',
       assignees: ['АИ', 'МП'],
       dueDate: '2024-11-05',
-      comments: 3
+      comments: 3,
+      projectId: '1'
     },
     {
       id: '2',
@@ -46,7 +63,8 @@ const Index = () => {
       priority: 'medium',
       assignees: ['ДК'],
       dueDate: '2024-11-08',
-      comments: 1
+      comments: 1,
+      projectId: '1'
     },
     {
       id: '3',
@@ -56,7 +74,8 @@ const Index = () => {
       priority: 'low',
       assignees: ['АИ'],
       dueDate: '2024-11-03',
-      comments: 5
+      comments: 5,
+      projectId: '1'
     },
     {
       id: '4',
@@ -66,7 +85,52 @@ const Index = () => {
       priority: 'high',
       assignees: ['МП', 'ДК'],
       dueDate: '2024-10-28',
-      comments: 8
+      comments: 8,
+      projectId: '1'
+    },
+    {
+      id: '5',
+      title: 'Дизайн экрана авторизации',
+      description: 'Создать UI для входа и регистрации',
+      status: 'in-progress',
+      priority: 'high',
+      assignees: ['МП'],
+      dueDate: '2024-11-06',
+      comments: 2,
+      projectId: '2'
+    },
+    {
+      id: '6',
+      title: 'Интеграция с камерой',
+      description: 'Реализовать функционал работы с камерой',
+      status: 'todo',
+      priority: 'medium',
+      assignees: ['ДК'],
+      dueDate: '2024-11-10',
+      comments: 0,
+      projectId: '2'
+    },
+    {
+      id: '7',
+      title: 'Запустить рекламную кампанию',
+      description: 'Настроить таргетированную рекламу',
+      status: 'done',
+      priority: 'high',
+      assignees: ['АИ'],
+      dueDate: '2024-10-25',
+      comments: 12,
+      projectId: '3'
+    },
+    {
+      id: '8',
+      title: 'Создать контент-план',
+      description: 'План публикаций на месяц',
+      status: 'review',
+      priority: 'medium',
+      assignees: ['МП'],
+      dueDate: '2024-11-02',
+      comments: 4,
+      projectId: '3'
     }
   ]);
 
@@ -102,11 +166,21 @@ const Index = () => {
     }
   };
 
+  const filteredTasks = selectedProject === 'all' 
+    ? tasks 
+    : tasks.filter(t => t.projectId === selectedProject);
+
   const stats = {
-    total: tasks.length,
-    inProgress: tasks.filter(t => t.status === 'in-progress').length,
-    done: tasks.filter(t => t.status === 'done').length,
+    total: filteredTasks.length,
+    inProgress: filteredTasks.filter(t => t.status === 'in-progress').length,
+    done: filteredTasks.filter(t => t.status === 'done').length,
     overdue: 2
+  };
+  
+  const getProjectProgress = (projectId: string) => {
+    const projectTasks = tasks.filter(t => t.projectId === projectId);
+    const doneTasks = projectTasks.filter(t => t.status === 'done').length;
+    return projectTasks.length > 0 ? Math.round((doneTasks / projectTasks.length) * 100) : 0;
   };
 
   return (
@@ -152,6 +226,31 @@ const Index = () => {
             Настройки
           </Button>
         </nav>
+        
+        <div className="mt-8 pt-8 border-t border-border">
+          <h3 className="text-xs font-semibold uppercase text-muted-foreground mb-3">Проекты</h3>
+          <div className="space-y-1">
+            <Button
+              variant={selectedProject === 'all' ? 'secondary' : 'ghost'}
+              className="w-full justify-start text-sm"
+              onClick={() => setSelectedProject('all')}
+            >
+              <Icon name="Folder" className="mr-2" size={16} />
+              Все проекты
+            </Button>
+            {projects.map(project => (
+              <Button
+                key={project.id}
+                variant={selectedProject === project.id ? 'secondary' : 'ghost'}
+                className="w-full justify-start text-sm"
+                onClick={() => setSelectedProject(project.id)}
+              >
+                <div className={`w-2 h-2 rounded-full ${project.color} mr-3`} />
+                {project.name}
+              </Button>
+            ))}
+          </div>
+        </div>
       </aside>
 
       <main className="ml-64 p-8">
@@ -161,9 +260,9 @@ const Index = () => {
               {activeView === 'dashboard' ? 'Дашборд' : 'Канбан доска'}
             </h2>
             <p className="text-muted-foreground">
-              {activeView === 'dashboard' 
-                ? 'Обзор текущих задач и статистика' 
-                : 'Управление задачами через Kanban'}
+              {selectedProject === 'all' 
+                ? 'Все проекты' 
+                : projects.find(p => p.id === selectedProject)?.name}
             </p>
           </div>
           
@@ -206,18 +305,35 @@ const Index = () => {
                     <Input id="dueDate" type="date" />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>Исполнители</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Выберите исполнителей" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ai">Александр Иванов</SelectItem>
-                      <SelectItem value="mp">Мария Петрова</SelectItem>
-                      <SelectItem value="dk">Дмитрий Козлов</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Проект</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Выберите проект" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {projects.map(project => (
+                          <SelectItem key={project.id} value={project.id}>
+                            {project.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Исполнители</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Выберите исполнителей" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ai">Александр Иванов</SelectItem>
+                        <SelectItem value="mp">Мария Петрова</SelectItem>
+                        <SelectItem value="dk">Дмитрий Козлов</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
               <div className="flex justify-end gap-3">
@@ -265,50 +381,45 @@ const Index = () => {
             </div>
 
             <Card className="p-6 bg-gradient-to-br from-card to-card/50 border-border/50">
-              <h3 className="text-lg font-semibold mb-4">Прогресс по задачам</h3>
+              <h3 className="text-lg font-semibold mb-4">Прогресс по проектам</h3>
               <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">К выполнению</span>
-                    <span className="text-foreground font-medium">1 задача</span>
-                  </div>
-                  <Progress value={25} className="h-2" />
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">В работе</span>
-                    <span className="text-foreground font-medium">1 задача</span>
-                  </div>
-                  <Progress value={25} className="h-2" />
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">На проверке</span>
-                    <span className="text-foreground font-medium">1 задача</span>
-                  </div>
-                  <Progress value={25} className="h-2" />
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">Завершено</span>
-                    <span className="text-foreground font-medium">1 задача</span>
-                  </div>
-                  <Progress value={25} className="h-2" />
-                </div>
+                {projects.map(project => {
+                  const progress = getProjectProgress(project.id);
+                  const projectTasks = tasks.filter(t => t.projectId === project.id);
+                  const doneTasks = projectTasks.filter(t => t.status === 'done').length;
+                  
+                  return (
+                    <div key={project.id}>
+                      <div className="flex justify-between text-sm mb-2">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${project.color}`} />
+                          <span className="text-foreground font-medium">{project.name}</span>
+                        </div>
+                        <span className="text-muted-foreground">{doneTasks}/{projectTasks.length} задач</span>
+                      </div>
+                      <Progress value={progress} className="h-2" />
+                    </div>
+                  );
+                })}
               </div>
             </Card>
 
             <Card className="p-6 bg-gradient-to-br from-card to-card/50 border-border/50">
               <h3 className="text-lg font-semibold mb-4">Активные задачи</h3>
               <div className="space-y-3">
-                {tasks.filter(t => t.status !== 'done').map((task) => (
+                {filteredTasks.filter(t => t.status !== 'done').map((task) => {
+                  const project = projects.find(p => p.id === task.projectId);
+                  return (
                   <div
                     key={task.id}
                     className="p-4 bg-muted/30 rounded-lg border border-border/50 hover:border-primary/50 transition-all cursor-pointer"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
-                        <h4 className="font-medium mb-1">{task.title}</h4>
+                        <div className="flex items-center gap-2 mb-1">
+                          {project && <div className={`w-2 h-2 rounded-full ${project.color}`} />}
+                          <h4 className="font-medium">{task.title}</h4>
+                        </div>
                         <p className="text-sm text-muted-foreground line-clamp-1">{task.description}</p>
                       </div>
                       <Badge variant="outline" className={getPriorityColor(task.priority)}>
@@ -335,7 +446,7 @@ const Index = () => {
                       </div>
                     </div>
                   </div>
-                ))}
+                );})}
               </div>
             </Card>
           </div>
@@ -354,16 +465,23 @@ const Index = () => {
                   </div>
                   
                   <div className="space-y-3">
-                    {tasks
+                    {filteredTasks
                       .filter(t => t.status === column.id)
-                      .map((task) => (
+                      .map((task) => {
+                        const project = projects.find(p => p.id === task.projectId);
+                        return (
                         <Card
                           key={task.id}
                           className="p-4 bg-card/50 border-border/50 hover:border-primary/50 transition-all cursor-grab active:cursor-grabbing hover:scale-105"
                         >
                           <div className="space-y-3">
                             <div className="flex items-start justify-between gap-2">
-                              <h4 className="font-medium text-sm leading-tight flex-1">{task.title}</h4>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  {project && <div className={`w-2 h-2 rounded-full ${project.color}`} />}
+                                  <h4 className="font-medium text-sm leading-tight">{task.title}</h4>
+                                </div>
+                              </div>
                               <Badge variant="outline" className={`${getPriorityColor(task.priority)} text-xs`}>
                                 {getPriorityLabel(task.priority)}
                               </Badge>
@@ -397,7 +515,7 @@ const Index = () => {
                             </div>
                           </div>
                         </Card>
-                      ))}
+                      );})}
                   </div>
                 </div>
               ))}
